@@ -7,7 +7,7 @@ import { drawAnnotations } from "./ai/draw";
 
 import Webcam from "react-webcam";
 
-const EAR_THRESHOLD = 0.27;
+const BLINK_THRESHOLD = 0.27;
 
 const dist = (x1, y1, x2, y2) => {
   return Math.hypot(x2 - x1, y2 - y1);
@@ -27,7 +27,7 @@ const getEAR = (upperEye, lowerEye) => {
     lowerEye[2][0],
     lowerEye[2][1]
   );
-  
+
   // console.log(A, B);
   // Distance between left of eye and right of eye (horizontal distance).
   const horizontal = dist(
@@ -56,7 +56,7 @@ const predict = (face) => {
   const leftEAR = getEAR(upperLeft, lowerLeft);
 
   // True if the eye is closed
-  const blinked = leftEAR <= EAR_THRESHOLD && rightEAR <= EAR_THRESHOLD;
+  const blinked = leftEAR <= BLINK_THRESHOLD && rightEAR <= BLINK_THRESHOLD;
   return blinked;
 };
 
@@ -67,15 +67,15 @@ const loadModel = async () => {
 const App = () => {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
+  const [model, setModel] = useState(null);
 
-  const detect = async (model) => {
-    if (
-      !webcamRef.current ||
-      webcamRef.current.video.readyState !== 4 ||
-      !canvasRef.current
-    )
-      return;
+  const lastBlinked = useRef(Date.now());
+  const [msSinceBlink, setMsSinceBlink] = useState(0);
 
+  const drowsyStart = useRef(null);
+  const [msSinceDrowsy, setMsSinceDrowsy] = useState(0);
+
+  const detect = async () => {
     // Get Video Properties
     const video = webcamRef.current.video;
     const videoWidth = webcamRef.current.video.videoWidth;
@@ -93,15 +93,37 @@ const App = () => {
     const ctx = canvasRef.current.getContext("2d");
 
     requestAnimationFrame(() => {
-      drawAnnotations(face, ctx, ["leftEyeUpper0", "leftEyeLower0", "rightEyeUpper0", "rightEyeLower0"]);
+      drawAnnotations(face, ctx, [
+        "leftEyeUpper0",
+        "leftEyeLower0",
+        "rightEyeUpper0",
+        "rightEyeLower0",
+      ]);
     });
 
-    if (predict(face[0]))
-      console.log("blinked")
+    const blinked = predict(face[0]);
+
+    if (blinked) {
+      lastBlinked.current = Date.now();
+
+      console.log("blinked");
+
+      if (drowsyStart.current === null) {
+        drowsyStart.current = Date.now();
+        console.log("drowsy start");
+      }
+    } else {
+      if (drowsyStart.current !== null) {
+        drowsyStart.current = null;
+        console.log("drowsy end");
+      }      
+    }
   };
 
+  // loading the model
   useEffect(() => {
     if (
+      typeof webcamRef.current === "undefined" || 
       !webcamRef.current ||
       webcamRef.current.video.readyState !== 4 ||
       !canvasRef.current
@@ -109,30 +131,34 @@ const App = () => {
       return;
 
     (async () => {
-      const model = await loadModel();
-
-      console.log("model loaded");
-      await detect(model);
+      console.log("loading model...");
+      setModel(await loadModel());
+      console.log("model loaded!");
     })();
   }, [webcamRef, canvasRef]);
 
+  // starting the detector
   useEffect(() => {
-    let interval;
+    if (!model) return;
 
-    (async () => {
-      const model = await loadModel();
+    const interval = setInterval(() => {
+      detect();
 
-      interval = setInterval(() => {
-        detect(model);
-      }, 10);
-    })();
+      console.log(lastBlinked.current);
+      setMsSinceBlink(Date.now() - lastBlinked.current);
+
+      if (drowsyStart.current === null)
+        setMsSinceDrowsy(null);
+      else
+        setMsSinceDrowsy(Date.now() - drowsyStart.current);
+    }, 10);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [model]);
 
   return (
     <>
-      <div className="w-52 h-52">
+      <div className="w-full h-[480px]">
         <Webcam
           ref={webcamRef}
           style={{
@@ -163,6 +189,13 @@ const App = () => {
           }}
         />
       </div>
+
+      <h2 className="text-center text-3xl mt-3 font-bold text-red-600">
+        Seconds since last blink: {Math.round(msSinceBlink / 1000)}
+      </h2>
+      <h2 className="text-center text-3xl mt-3 font-bold text-red-600">
+        Seconds being drowsy: {Math.round(msSinceDrowsy / 1000)}
+      </h2>
     </>
   );
 };
