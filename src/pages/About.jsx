@@ -32,9 +32,9 @@ const About = () => {
         Alternatively, you can check out some{" "}
         <Link href="/exercises">Eye Exercises</Link> to get started!
       </Paragraph>
-      
+
       <button
-        class="mt-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        className="mt-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         onClick={() => navigate("/focus")}
       >
         Try it now!
