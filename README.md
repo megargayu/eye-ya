@@ -1,4 +1,7 @@
 # eye-ya!
+
+**NOTE:** Almost all commits show up with megargayu's username as we used the Live Share extension in Visual Studio Code, meaning we both worked on the same computer and therefore the same account.
+
 # Summary
 Our app, Eye-ya!, allows you to take care of your eyes through Machine
 Learning. This is done through Focus Mode,
