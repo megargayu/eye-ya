@@ -10,7 +10,7 @@ import EyeExercises from "./pages/EyeExercises";
 
 const App = () => {
   return (
-    <div className="w-full h-full bg-slate-800">
+    <div className="w-full h-full bg-[#121212] overflow-y-auto">
       <BrowserRouter>
         <Navbar />
         <Routes>

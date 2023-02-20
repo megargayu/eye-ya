@@ -129,10 +129,10 @@ const FocusMode = () => {
 
   // notification handler
   useEffect(() => {
-    // don't show a notification until 10 minutes have passed
+    // don't show a notification until 5 minutes have passed
     if (
       sinceLastNotification.current !== null &&
-      Date.now() - sinceLastNotification.current < 10 * 60_000
+      Date.now() - sinceLastNotification.current < 5 * 60_000
     )
       return;
 
@@ -145,10 +145,10 @@ const FocusMode = () => {
       sinceLastNotification.current = Date.now();
     }
 
-    if (msSinceBlink > 15_000) {
-      // something is wrong, usually you don't not blink for 15 seconds!
+    // something is wrong, usually you don't not blink for 10 seconds!
+    if (msSinceBlink > 10_000) {
       new Notification(
-        "Eye-ya! has detected you haven't blinked in more than 15 seconds.",
+        "Eye-ya! has detected you haven't blinked in more than 10 seconds.",
         {
           body: "Focusing for too long can cause eye strain. Take a break!",
         }
@@ -168,14 +168,14 @@ const FocusMode = () => {
   }, [msSinceBlink]);
 
   return !hasPermissions ? (
-    <div className="flex justify-center items-center h-full w-full bg-slate-800">
-      <h1 className="text-3xl font-bold text-red-600">
-        Please give access to notifications and video!
+    <div className="flex justify-center items-center h-[calc(100%-7rem)]">
+      <h1 className="text-3xl font-bold text-white">
+        Please enable permissions for accessing the camera and notifications.
       </h1>
     </div>
   ) : (
     <>
-      <div className="w-full flex flex-col justify-center items-center space-y-10">
+      <div className="w-full h-[calc(100%-7rem)] flex flex-col justify-center items-center space-y-10">
         {inFocusMode ? (
           <h2 className="text-white text-6xl">
             {Math.floor((timeSinceFocusMode / 1000 / 60 / 60) % 24)
@@ -198,7 +198,13 @@ const FocusMode = () => {
           className="rounded-full w-64 h-64 bg-cyan-500 flex justify-center items-center disabled:bg-gray-500"
           onClick={() => {
             console.log("hi");
-            focusModeStart.current = Date.now();
+            if (!inFocusMode) {
+              focusModeStart.current = Date.now();
+              setMsSinceBlink(0);
+              lastBlinked.current = Date.now();
+              sinceSeenFace.current = Date.now();
+            }
+
             setInFocusMode(!inFocusMode);
           }}
         >
