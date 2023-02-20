@@ -9,8 +9,8 @@ import Webcam from "react-webcam";
 
 import Modal from "../components/Modal";
 
-import StopIcon from "../components/StopIcon";
-import PlayIcon from "../components/PlayIcon";
+import StopIcon from "../icons/StopIcon";
+import PlayIcon from "../icons/PlayIcon";
 
 const FocusMode = () => {
   const [inFocusMode, setInFocusMode] = useState(false);
@@ -129,10 +129,12 @@ const FocusMode = () => {
 
   // notification handler
   useEffect(() => {
+    if (!inFocusMode) return;
+
     // don't show a notification until 5 minutes have passed
     if (
       sinceLastNotification.current !== null &&
-      Date.now() - sinceLastNotification.current < 5 * 60_000
+      Date.now() - sinceLastNotification.current < 2 * 60_000
     )
       return;
 
@@ -168,14 +170,14 @@ const FocusMode = () => {
   }, [msSinceBlink]);
 
   return !hasPermissions ? (
-    <div className="flex justify-center items-center h-[calc(100%-7rem)]">
+    <div className="flex justify-center items-center h-[calc(100%-8.5rem)]">
       <h1 className="text-3xl font-bold text-white">
         Please enable permissions for accessing the camera and notifications.
       </h1>
     </div>
   ) : (
     <>
-      <div className="w-full h-[calc(100%-7rem)] flex flex-col justify-center items-center space-y-10">
+      <div className="w-full h-[calc(100%-8.5rem)] flex flex-col justify-center items-center space-y-10">
         {inFocusMode ? (
           <h2 className="text-white text-6xl">
             {Math.floor((timeSinceFocusMode / 1000 / 60 / 60) % 24)
@@ -197,9 +199,9 @@ const FocusMode = () => {
           disabled={!model}
           className="rounded-full w-64 h-64 bg-cyan-500 flex justify-center items-center disabled:bg-gray-500"
           onClick={() => {
-            console.log("hi");
             if (!inFocusMode) {
               focusModeStart.current = Date.now();
+              setTimeSinceFocusMode(0);
               setMsSinceBlink(0);
               lastBlinked.current = Date.now();
               sinceSeenFace.current = Date.now();
@@ -216,7 +218,7 @@ const FocusMode = () => {
         </button>
 
         <button
-          disabled={!inFocusMode}
+          disabled={!inFocusMode || timeSinceFocusMode <= 1000}
           className="rounded-full w-64 p-2 text-white bg-blue-500 font-bold disabled:bg-gray-500 disabled:text-gray-800"
           onClick={() => setShowData(true)}
         >
@@ -257,10 +259,10 @@ const FocusMode = () => {
           />
         </div>
 
-        <h2 className="text-center text-3xl mt-3 font-bold text-cyan-600">
+        <h2 className="text-center text-3xl mt-8 font-bold text-blue-500">
           You have not blinked for {Math.round(msSinceBlink / 1000)} seconds.
         </h2>
-        <h2 className="text-center text-3xl mt-3 font-bold text-cyan-600">
+        <h2 className="text-center text-3xl mt-3 font-bold text-blue-500">
           You have been drowsy for {Math.round(msSinceDrowsy / 1000)} seconds.
         </h2>
       </Modal>

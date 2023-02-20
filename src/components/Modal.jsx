@@ -7,7 +7,7 @@ const Modal = ({ children, shown, setShown }) => {
       onClick={() => setShown(false)}
     >
       <div
-        className="w-[640px] h-[480px] bg-slate-300 rounded-xl flex justify-center items-center flex-col"
+        className="w-[640px] h-[480px] bg-slate-200 rounded-xl flex justify-center items-center flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {children}

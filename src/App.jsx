@@ -19,6 +19,7 @@ const App = () => {
           <Route exact path="/exercises" element={<EyeExercises />} />
         </Routes>
       </BrowserRouter>
+      <h2 className="w-full text-xs text-center text-white mb-4">Made with ❤️ by Ayush Garg and Franklin Liu</h2>
     </div>
   );
 };
